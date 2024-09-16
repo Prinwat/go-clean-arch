@@ -27,6 +27,7 @@ type ArticleService interface {
 	GetByTitle(ctx context.Context, title string) (domain.Article, error)
 	Store(context.Context, *domain.Article) error
 	Delete(ctx context.Context, id int64) error
+	CalBmi(ctx context.Context, rq *domain.RequestBmi) (domain.ResponseBmi, error)
 }
 
 // ArticleHandler  represent the httphandler for article
@@ -45,6 +46,7 @@ func NewArticleHandler(e *echo.Echo, svc ArticleService) {
 	e.POST("/articles", handler.Store)
 	e.GET("/articles/:id", handler.GetByID)
 	e.DELETE("/articles/:id", handler.Delete)
+	e.POST("/cal-bmi", handler.CalBmi)
 }
 
 // FetchArticle will fetch the article based on given params
@@ -95,6 +97,15 @@ func isRequestValid(m *domain.Article) (bool, error) {
 	return true, nil
 }
 
+func isRequestValidCalBmi(m *domain.RequestBmi) (bool, error) {
+	validate := validator.New()
+	err := validate.Struct(m)
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 // Store will store the article by given request body
 func (a *ArticleHandler) Store(c echo.Context) (err error) {
 	var article domain.Article
@@ -133,6 +144,28 @@ func (a *ArticleHandler) Delete(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// Calculate bmi
+func (a *ArticleHandler) CalBmi(c echo.Context) (err error) {
+	var article domain.RequestBmi
+	err = c.Bind(&article)
+	if err != nil {
+		return c.JSON(http.StatusUnprocessableEntity, err.Error())
+	}
+
+	var ok bool
+	if ok, err = isRequestValidCalBmi(&article); !ok {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	ctx := c.Request().Context()
+	res, err := a.Service.CalBmi(ctx, &article)
+	if err != nil {
+		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
+	}
+
+	return c.JSON(http.StatusOK, res)
 }
 
 func getStatusCode(err error) int {
