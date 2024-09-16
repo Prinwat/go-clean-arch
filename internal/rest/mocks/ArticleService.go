@@ -174,3 +174,22 @@ func NewArticleService(t interface {
 
 	return mock
 }
+
+// Calculate bmi
+func (_m *ArticleService) CalBmi(_a0 context.Context, _a1 *domain.RequestBmi) (res domain.ResponseBmi, err error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value")
+	}
+
+	var x0 domain.ResponseBmi
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, *domain.RequestBmi) (res domain.ResponseBmi, err error)); ok {
+		x0, r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return x0, r0
+}

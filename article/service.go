@@ -20,6 +20,7 @@ type ArticleRepository interface {
 	Update(ctx context.Context, ar *domain.Article) error
 	Store(ctx context.Context, a *domain.Article) error
 	Delete(ctx context.Context, id int64) error
+	CalBmi(ctx context.Context, rq *domain.RequestBmi) (domain.ResponseBmi, error)
 }
 
 // AuthorRepository represent the author's repository contract
@@ -164,4 +165,21 @@ func (a *Service) Delete(ctx context.Context, id int64) (err error) {
 		return domain.ErrNotFound
 	}
 	return a.articleRepo.Delete(ctx, id)
+}
+
+func (a *Service) CalBmi(ctx context.Context, m *domain.RequestBmi) (res domain.ResponseBmi, err error) {
+	resultCal := m.Weight / (m.High / 100 * m.High / 100)
+	result := domain.ResponseBmi{}
+	if resultCal > 35.0 {
+		result.Result = "อ้วนมากผิดปกติ"
+	} else if resultCal > 30 {
+		result.Result = "อ้วน"
+	} else if resultCal > 25 {
+		result.Result = "เริ่มอ้วน"
+	} else if resultCal > 18.5 {
+		result.Result = "น้ำหนักปกติ น้ำหนักเหมาะสม"
+	} else {
+		result.Result = "ผอมเกินไป - น้ำหนักน้อยกว่าปกติ"
+	}
+	return res, nil
 }

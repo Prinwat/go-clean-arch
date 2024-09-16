@@ -182,3 +182,7 @@ func (m *ArticleRepository) Update(ctx context.Context, ar *domain.Article) (err
 
 	return
 }
+
+func (m *ArticleRepository) CalBmi(ctx context.Context, rq *domain.RequestBmi) (res domain.ResponseBmi, err error) {
+	return
+}

@@ -213,3 +213,27 @@ func TestUpdate(t *testing.T) {
 		mockArticleRepo.AssertExpectations(t)
 	})
 }
+
+func TestCalBmi(t *testing.T) {
+	mockArticleRepo := new(mocks.ArticleRepository)
+	mockRequest := domain.RequestBmi{
+		High:   172,
+		Weight: 52,
+	}
+
+	t.Run("success", func(t *testing.T) {
+		tempMockArticle := mockRequest
+		tempMockArticle.Weight = 0
+		mockArticleRepo.On("GetByTitle", mock.Anything, mock.AnythingOfType("string")).Return(domain.Article{}, domain.ErrNotFound).Once()
+		mockArticleRepo.On("Store", mock.Anything, mock.AnythingOfType("*domain.Article")).Return(nil).Once()
+
+		mockAuthorrepo := new(mocks.AuthorRepository)
+		u := article.NewService(mockArticleRepo, mockAuthorrepo)
+
+		res, err := u.CalBmi(context.TODO(), &tempMockArticle)
+
+		assert.NoError(t, err)
+		assert.Equal(t, res.Result, "ผอมเกินไป - น้ำหนักน้อยกว่าปกติ")
+		mockArticleRepo.AssertExpectations(t)
+	})
+}

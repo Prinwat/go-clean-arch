@@ -174,3 +174,7 @@ func NewArticleRepository(t interface {
 
 	return mock
 }
+
+func (_m *ArticleRepository) CalBmi(ctx context.Context, rq *domain.RequestBmi) (res domain.ResponseBmi, err error) {
+	return
+}
