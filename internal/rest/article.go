@@ -148,19 +148,19 @@ func (a *ArticleHandler) Delete(c echo.Context) error {
 
 // Calculate bmi
 func (a *ArticleHandler) CalBmi(c echo.Context) (err error) {
-	var article domain.RequestBmi
-	err = c.Bind(&article)
+	var request domain.RequestBmi
+	err = c.Bind(&request)
 	if err != nil {
 		return c.JSON(http.StatusUnprocessableEntity, err.Error())
 	}
 
 	var ok bool
-	if ok, err = isRequestValidCalBmi(&article); !ok {
+	if ok, err = isRequestValidCalBmi(&request); !ok {
 		return c.JSON(http.StatusBadRequest, err.Error())
 	}
 
 	ctx := c.Request().Context()
-	res, err := a.Service.CalBmi(ctx, &article)
+	res, err := a.Service.CalBmi(ctx, &request)
 	if err != nil {
 		return c.JSON(getStatusCode(err), ResponseError{Message: err.Error()})
 	}

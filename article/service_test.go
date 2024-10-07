@@ -216,24 +216,32 @@ func TestUpdate(t *testing.T) {
 
 func TestCalBmi(t *testing.T) {
 	mockArticleRepo := new(mocks.ArticleRepository)
-	mockRequest := domain.RequestBmi{
-		High:   172,
-		Weight: 52,
+
+	type testmodel struct {
+		casename string
+		request  domain.RequestBmi
+		expected string
 	}
 
-	t.Run("success", func(t *testing.T) {
-		tempMockArticle := mockRequest
-		tempMockArticle.Weight = 0
-		mockArticleRepo.On("GetByTitle", mock.Anything, mock.AnythingOfType("string")).Return(domain.Article{}, domain.ErrNotFound).Once()
-		mockArticleRepo.On("Store", mock.Anything, mock.AnythingOfType("*domain.Article")).Return(nil).Once()
+	testcase := []testmodel{
+		{casename: "Success underweight", request: domain.RequestBmi{High: 170, Weight: 50}, expected: "You are underweight."},
+		{casename: "Success normal weight", request: domain.RequestBmi{High: 170, Weight: 55}, expected: "You have a normal weight."},
+		{casename: "Success overweight", request: domain.RequestBmi{High: 170, Weight: 80}, expected: "You are overweight."},
+		{casename: "Success obese", request: domain.RequestBmi{High: 170, Weight: 100}, expected: "You are obese."},
+	}
 
-		mockAuthorrepo := new(mocks.AuthorRepository)
-		u := article.NewService(mockArticleRepo, mockAuthorrepo)
+	for _, c := range testcase {
+		t.Run(c.casename, func(t *testing.T) {
+			mockArticleRepo.On("GetByTitle", mock.Anything, mock.AnythingOfType("string")).Return(domain.Article{}, domain.ErrNotFound).Once()
+			mockArticleRepo.On("Store", mock.Anything, mock.AnythingOfType("*domain.Article")).Return(nil).Once()
 
-		res, err := u.CalBmi(context.TODO(), &tempMockArticle)
+			mockAuthorrepo := new(mocks.AuthorRepository)
+			u := article.NewService(mockArticleRepo, mockAuthorrepo)
 
-		assert.NoError(t, err)
-		assert.Equal(t, res.Result, "ผอมเกินไป - น้ำหนักน้อยกว่าปกติ")
-		mockArticleRepo.AssertExpectations(t)
-	})
+			result, err := u.CalBmi(context.TODO(), &c.request)
+
+			assert.NoError(t, err)
+			assert.Equal(t, c.expected, result.Result)
+		})
+	}
 }

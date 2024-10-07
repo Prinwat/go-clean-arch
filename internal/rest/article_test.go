@@ -170,3 +170,36 @@ func TestDelete(t *testing.T) {
 	assert.Equal(t, http.StatusNoContent, rec.Code)
 	mockUCase.AssertExpectations(t)
 }
+
+func TestCalBmi(t *testing.T) {
+	mockArticle := domain.RequestBmi{
+		High:   170,
+		Weight: 50,
+	}
+
+	tempMockArticle := mockArticle
+	mockUCase := new(mocks.ArticleService)
+
+	j, err := json.Marshal(tempMockArticle)
+	assert.NoError(t, err)
+
+	mockUCase.On("CalBmi", mock.Anything, mock.AnythingOfType("*domain.RequestBmi")).Return(nil)
+
+	e := echo.New()
+	req, err := http.NewRequestWithContext(context.TODO(), echo.POST, "/cal-bmi", strings.NewReader(string(j)))
+	assert.NoError(t, err)
+	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
+
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	c.SetPath("/cal-bmi")
+
+	handler := rest.ArticleHandler{
+		Service: mockUCase,
+	}
+	err = handler.CalBmi(c)
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+	mockUCase.AssertExpectations(t)
+}

@@ -170,16 +170,18 @@ func (a *Service) Delete(ctx context.Context, id int64) (err error) {
 func (a *Service) CalBmi(ctx context.Context, m *domain.RequestBmi) (res domain.ResponseBmi, err error) {
 	resultCal := m.Weight / (m.High / 100 * m.High / 100)
 	result := domain.ResponseBmi{}
-	if resultCal > 35.0 {
-		result.Result = "อ้วนมากผิดปกติ"
-	} else if resultCal > 30 {
-		result.Result = "อ้วน"
-	} else if resultCal > 25 {
-		result.Result = "เริ่มอ้วน"
-	} else if resultCal > 18.5 {
-		result.Result = "น้ำหนักปกติ น้ำหนักเหมาะสม"
-	} else {
-		result.Result = "ผอมเกินไป - น้ำหนักน้อยกว่าปกติ"
+	switch {
+	case resultCal < 18.5:
+		result.Result = "You are underweight."
+		return result, nil
+	case resultCal < 24.9:
+		result.Result = "You have a normal weight."
+		return result, nil
+	case resultCal < 29.9:
+		result.Result = "You are overweight."
+		return result, nil
+	default:
+		result.Result = "You are obese."
+		return result, nil
 	}
-	return res, nil
 }
